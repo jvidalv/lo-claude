@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "lo-claude": {
+      "command": "npx",
+      "args": ["tsx", "src/core/mcp-server.ts"],
+      "cwd": "."
+    }
+  }
+}

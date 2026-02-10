@@ -1,0 +1,41 @@
+{
+  "name": "lo-claude",
+  "version": "0.1.0",
+  "description": "Modular Claude Code extension platform - Give Claude superpowers through pluggable modules",
+  "type": "module",
+  "main": "dist/core/mcp-server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/core/mcp-server.js",
+    "dev": "tsx src/core/mcp-server.ts",
+    "typecheck": "tsc --noEmit",
+    "setup": "tsx src/setup/setup.ts"
+  },
+  "imports": {
+    "#core/*.js": "./dist/core/*.js",
+    "#modules/*.js": "./dist/modules/*.js"
+  },
+  "keywords": [
+    "claude",
+    "mcp",
+    "gmail",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "googleapis": "^144.0.0",
+    "puppeteer": "^24.35.0",
+    "puppeteer-core": "^24.35.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

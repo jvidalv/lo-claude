@@ -1,0 +1,25 @@
+{
+  "commands": {
+    "init-lo-claude": {
+      "description": "Initialize Lo-Claude and configure modules"
+    },
+    "gmail-setup": {
+      "description": "Set up Gmail OAuth credentials"
+    },
+    "gmail-daily": {
+      "description": "Show yesterday's emails with priority classification"
+    },
+    "gmail-unread": {
+      "description": "Show unread emails with priority classification"
+    },
+    "gmail-from": {
+      "description": "Search emails from a specific person"
+    },
+    "mediavida-setup": {
+      "description": "Set up Mediavida forum module (cookies export)"
+    },
+    "setup": {
+      "description": "Run interactive setup wizard for Claude Code settings"
+    }
+  }
+}

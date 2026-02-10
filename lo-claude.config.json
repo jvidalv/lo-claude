@@ -1,0 +1,3 @@
+{
+  "enabledModules": ["gmail", "drive", "s3", "mediavida"]
+}
