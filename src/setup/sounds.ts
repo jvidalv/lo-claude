@@ -19,7 +19,7 @@ function getPlayCommand(): string {
 function buildHookCommand(soundsDir: string, files: string[]): string {
   const play = getPlayCommand();
   const paths = files.map((f) => `$S/${f}`).join(' ');
-  return `S=${soundsDir}; sounds=(${paths}); ${play} \${sounds[$((RANDOM % \${#sounds[@]}))]} &`;
+  return `S=${soundsDir}; sounds=(${paths}); nohup ${play} \${sounds[$((RANDOM % \${#sounds[@]}))]} &>/dev/null & disown`;
 }
 
 function makeHook(soundsDir: string, files: string[]): HookEntry {
