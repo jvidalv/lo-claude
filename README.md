@@ -6,7 +6,7 @@ A modular Claude Code extension platform. Give Claude superpowers through plugga
 
 ```bash
 # Clone the repo
-git clone https://github.com/josepvidal/lo-claude.git
+git clone https://github.com/jvidalv/lo-claude.git
 cd lo-claude
 
 # Install dependencies
