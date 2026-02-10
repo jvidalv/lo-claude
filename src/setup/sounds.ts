@@ -1,6 +1,7 @@
 import { platform } from 'node:os';
 
 export type SoundPack = 'osrs' | 'none';
+export type OSType = 'macos' | 'linux' | 'windows';
 
 interface HookEntry {
   hooks: Array<{
@@ -12,22 +13,45 @@ interface HookEntry {
 
 type HooksConfig = Record<string, HookEntry[]>;
 
-function getPlayCommand(): string {
-  return platform() === 'darwin' ? 'afplay' : 'paplay';
+export function detectOS(): OSType {
+  const p = platform();
+  if (p === 'darwin') return 'macos';
+  if (p === 'win32') return 'windows';
+  return 'linux';
 }
 
-function buildHookCommand(soundsDir: string, files: string[]): string {
-  const play = getPlayCommand();
+export function getOSLabel(os: OSType): string {
+  switch (os) {
+    case 'macos':
+      return 'macOS (afplay)';
+    case 'linux':
+      return 'Linux (paplay)';
+    case 'windows':
+      return 'Windows/WSL (powershell)';
+  }
+}
+
+function buildHookCommand(soundsDir: string, files: string[], os: OSType): string {
   const paths = files.map((f) => `$S/${f}`).join(' ');
-  return `S=${soundsDir}; sounds=(${paths}); nohup ${play} \${sounds[$((RANDOM % \${#sounds[@]}))]} &>/dev/null & disown`;
+  const randomPick = `\${sounds[$((RANDOM % \${#sounds[@]}))]}`;
+  const selectSound = `S=${soundsDir}; sounds=(${paths})`;
+
+  switch (os) {
+    case 'macos':
+      return `${selectSound}; nohup afplay ${randomPick} &>/dev/null & disown`;
+    case 'linux':
+      return `${selectSound}; nohup paplay ${randomPick} &>/dev/null & disown`;
+    case 'windows':
+      return `${selectSound}; powershell.exe -c "(New-Object Media.SoundPlayer ${randomPick}).PlaySync()" &>/dev/null & disown`;
+  }
 }
 
-function makeHook(soundsDir: string, files: string[]): HookEntry {
+function makeHook(soundsDir: string, files: string[], os: OSType): HookEntry {
   return {
     hooks: [
       {
         type: 'command',
-        command: buildHookCommand(soundsDir, files),
+        command: buildHookCommand(soundsDir, files, os),
         async: true,
       },
     ],
@@ -92,12 +116,12 @@ const osrsSoundMap: Record<string, string[]> = {
   ],
 };
 
-export function getSoundHooks(pack: SoundPack, soundsDir: string): HooksConfig | null {
+export function getSoundHooks(pack: SoundPack, soundsDir: string, os: OSType): HooksConfig | null {
   if (pack === 'none') return null;
 
   const hooks: HooksConfig = {};
   for (const [event, files] of Object.entries(osrsSoundMap)) {
-    hooks[event] = [makeHook(soundsDir, files)];
+    hooks[event] = [makeHook(soundsDir, files, os)];
   }
   return hooks;
 }

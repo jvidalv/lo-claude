@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readdirSync, copyFileSync, existsSync } from 'node:fs';
 import { getVerbs, getVerbPackDescription } from './verbs.js';
-import { getSoundHooks, getSoundPackDescription, type SoundPack } from './sounds.js';
+import { getSoundHooks, getSoundPackDescription, detectOS, getOSLabel, type SoundPack, type OSType } from './sounds.js';
 import { getPermissions, getPresetDescription, type PermissionPreset } from './permissions.js';
 import {
   readSettings,
@@ -43,6 +43,30 @@ function banner(): void {
   print('  ║   Configure your Claude Code vibes   ║');
   print('  ╚══════════════════════════════════════╝');
   print();
+}
+
+async function selectOS(): Promise<OSType> {
+  const detected = detectOS();
+  print('── Platform ──');
+  print(`  Detected: ${getOSLabel(detected)}`);
+  print();
+  print('  1) macos   — macOS (afplay)');
+  print('  2) linux   — Linux (paplay)');
+  print('  3) windows — Windows/WSL (powershell)');
+  print();
+
+  const choice = await ask(`  Choose [1-3] or press Enter for ${detected}: `);
+
+  switch (choice) {
+    case '1':
+      return 'macos';
+    case '2':
+      return 'linux';
+    case '3':
+      return 'windows';
+    default:
+      return detected;
+  }
 }
 
 async function selectVerbs(): Promise<{ mode: string; verbs: string[] } | null> {
@@ -148,18 +172,22 @@ function copySoundFiles(): number {
 async function main(): Promise<void> {
   banner();
 
-  // Step 1: Spinner Verbs
+  // Step 1: Platform
+  const os = await selectOS();
+
+  // Step 2: Spinner Verbs
   const verbsConfig = await selectVerbs();
 
-  // Step 2: Sound Pack
+  // Step 3: Sound Pack
   const soundPack = await selectSounds();
 
-  // Step 3: Permissions
+  // Step 4: Permissions
   const permPreset = await selectPermissions();
 
   // Confirm
   print();
   print('── Summary ──');
+  print(`  Platform:    ${getOSLabel(os)}`);
   print(`  Verbs:       ${verbsConfig ? `${verbsConfig.verbs.length} custom verbs` : 'unchanged'}`);
   print(`  Sounds:      ${soundPack}`);
   print(`  Permissions: ${permPreset}`);
@@ -197,7 +225,7 @@ async function main(): Promise<void> {
     const copied = copySoundFiles();
     print(`  Copied ${copied} sound files to ${getSoundsDir()}`);
 
-    const hooks = getSoundHooks(soundPack, '~/.claude/sounds');
+    const hooks = getSoundHooks(soundPack, '~/.claude/sounds', os);
     if (hooks) {
       changes['hooks'] = hooks;
       print(`  Configured ${Object.keys(hooks).length} sound hooks`);
