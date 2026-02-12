@@ -1,6 +1,6 @@
 import { platform } from 'node:os';
 
-export type SoundPackId = 'cstrike' | 'osrs' | 'csgo' | 'hl2' | 'hl1' | 'portal2' | 'tf2' | 'l4d2';
+export type SoundPackId = 'cstrike' | 'osrs' | 'csgo' | 'hl2' | 'hl1' | 'portal2' | 'tf2' | 'l4d2' | 'stardew';
 export type OSType = 'macos' | 'linux' | 'windows';
 
 interface HookEntry {
@@ -174,6 +174,20 @@ export const soundPacks: SoundPackMeta[] = [
       Stop: 'ui-beepclear.wav',
       TaskCompleted: 'ui-littlereward.wav',
       PreCompact: 'ambient-hydraulic_1.wav',
+    },
+  },
+  {
+    id: 'stardew',
+    game: 'Stardew Valley',
+    sounds: {
+      SessionStart: 'bigSelect.wav',
+      SessionEnd: 'bigDeSelect.wav',
+      PostToolUseFailure: 'cancel.wav',
+      PermissionRequest: 'jingle1.wav',
+      Notification: 'dwop.wav',
+      Stop: 'money.wav',
+      TaskCompleted: 'reward.wav',
+      PreCompact: 'newRecipe.wav',
     },
   },
 ];
