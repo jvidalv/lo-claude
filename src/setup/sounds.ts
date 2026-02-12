@@ -1,6 +1,6 @@
 import { platform } from 'node:os';
 
-export type SoundPackId = 'cstrike' | 'osrs' | 'csgo' | 'hl2' | 'hl1' | 'portal2';
+export type SoundPackId = 'cstrike' | 'osrs' | 'csgo' | 'hl2' | 'hl1' | 'portal2' | 'tf2' | 'l4d2';
 export type OSType = 'macos' | 'linux' | 'windows';
 
 interface HookEntry {
@@ -146,6 +146,34 @@ export const soundPacks: SoundPackMeta[] = [
       Stop: 'buttons-synth_positive_01.wav',
       TaskCompleted: 'buttons-test_chamber_pos_01.wav',
       PreCompact: 'world-tube_suction_object_01.wav',
+    },
+  },
+  {
+    id: 'tf2',
+    game: 'Team Fortress 2',
+    sounds: {
+      SessionStart: 'vo-engineer_mvm_wave_start01.mp3',
+      SessionEnd: 'vo-engineer_goodjob01.mp3',
+      PostToolUseFailure: 'vo-engineer_negativevocalization01.mp3',
+      PermissionRequest: 'ui-hint.wav',
+      Notification: 'ui-message_update.wav',
+      Stop: 'ui-buttonclick.wav',
+      TaskCompleted: 'player-recharged.wav',
+      PreCompact: 'player-spy_cloak.wav',
+    },
+  },
+  {
+    id: 'l4d2',
+    game: 'Left 4 Dead 2',
+    sounds: {
+      SessionStart: 'ui-bigreward.wav',
+      SessionEnd: 'doors-door_checkpoint_close1.wav',
+      PostToolUseFailure: 'ui-beep_error01.wav',
+      PermissionRequest: 'ui-beep_synthtone01.wav',
+      Notification: 'ui-beep07.wav',
+      Stop: 'ui-beepclear.wav',
+      TaskCompleted: 'ui-littlereward.wav',
+      PreCompact: 'ambient-hydraulic_1.wav',
     },
   },
 ];
