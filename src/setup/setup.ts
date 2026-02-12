@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readdirSync, copyFileSync, existsSync } from 'node:fs';
 import { getVerbs, getVerbPackDescription } from './verbs.js';
-import { getSoundHooks, getSoundPackDescription, detectOS, getOSLabel, type SoundPack, type OSType } from './sounds.js';
+import { getSoundHooks, soundPacks, detectOS, getOSLabel, type SoundPackId, type OSType } from './sounds.js';
 import { getPermissions, getPresetDescription, type PermissionPreset } from './permissions.js';
 import {
   readSettings,
@@ -19,7 +19,6 @@ const __dirname = dirname(__filename);
 
 // Resolve to src/setup even when running from dist
 const PROJECT_ROOT = resolve(__dirname.replace('/dist/', '/src/').replace('/src/setup', ''));
-const SOUNDS_SOURCE = resolve(PROJECT_ROOT, 'sounds', 'osrs');
 
 const rl = createInterface({
   input: process.stdin,
@@ -105,24 +104,31 @@ async function selectVerbs(): Promise<{ mode: string; verbs: string[] } | null> 
   }
 }
 
-async function selectSounds(): Promise<SoundPack> {
+async function selectSounds(): Promise<SoundPackId | 'none'> {
   print();
   print('── Sound Pack ──');
   print('Audio feedback for Claude Code events (task complete, errors, etc.)');
   print();
-  print('  1) osrs — ' + getSoundPackDescription('osrs'));
-  print('  2) none — ' + getSoundPackDescription('none'));
+
+  soundPacks.forEach((pack, i) => {
+    print(`  ${i + 1}) ${pack.id.padEnd(10)} — ${pack.game}`);
+  });
+  print(`  ${soundPacks.length + 1}) ${'none'.padEnd(10)} — No sounds`);
   print();
 
-  const choice = await ask('  Choose [1-2]: ');
+  const choice = await ask(`  Choose [1-${soundPacks.length + 1}]: `);
+  const idx = parseInt(choice, 10) - 1;
 
-  switch (choice) {
-    case '2':
-      return 'none';
-    case '1':
-    default:
-      return 'osrs';
+  if (idx >= 0 && idx < soundPacks.length) {
+    return soundPacks[idx]!.id;
   }
+
+  if (choice === String(soundPacks.length + 1)) {
+    return 'none';
+  }
+
+  // Default to first pack
+  return soundPacks[0]!.id;
 }
 
 async function selectPermissions(): Promise<PermissionPreset | 'skip'> {
@@ -148,20 +154,22 @@ async function selectPermissions(): Promise<PermissionPreset | 'skip'> {
   }
 }
 
-function copySoundFiles(): number {
-  if (!existsSync(SOUNDS_SOURCE)) {
-    print(`  Warning: Sound files not found at ${SOUNDS_SOURCE}`);
+function copySoundFiles(packId: SoundPackId): number {
+  const soundsSource = resolve(PROJECT_ROOT, 'sounds', packId);
+
+  if (!existsSync(soundsSource)) {
+    print(`  Warning: Sound files not found at ${soundsSource}`);
     return 0;
   }
 
   ensureSoundsDir();
   const soundsDir = getSoundsDir();
-  const files = readdirSync(SOUNDS_SOURCE);
+  const files = readdirSync(soundsSource);
   let copied = 0;
 
   for (const file of files) {
     if (file.endsWith('.ogg') || file.endsWith('.wav')) {
-      copyFileSync(resolve(SOUNDS_SOURCE, file), resolve(soundsDir, file));
+      copyFileSync(resolve(soundsSource, file), resolve(soundsDir, file));
       copied++;
     }
   }
@@ -222,14 +230,12 @@ async function main(): Promise<void> {
 
   // Apply sounds
   if (soundPack !== 'none') {
-    const copied = copySoundFiles();
+    const copied = copySoundFiles(soundPack);
     print(`  Copied ${copied} sound files to ${getSoundsDir()}`);
 
     const hooks = getSoundHooks(soundPack, '~/.claude/sounds', os);
-    if (hooks) {
-      changes['hooks'] = hooks;
-      print(`  Configured ${Object.keys(hooks).length} sound hooks`);
-    }
+    changes['hooks'] = hooks;
+    print(`  Configured ${Object.keys(hooks).length} sound hooks`);
   }
 
   // Merge changes into settings

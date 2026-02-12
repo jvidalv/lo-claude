@@ -1,6 +1,6 @@
 import { platform } from 'node:os';
 
-export type SoundPack = 'osrs' | 'none';
+export type SoundPackId = 'cstrike' | 'osrs' | 'csgo' | 'hl2' | 'hl1' | 'portal2';
 export type OSType = 'macos' | 'linux' | 'windows';
 
 interface HookEntry {
@@ -12,6 +12,12 @@ interface HookEntry {
 }
 
 type HooksConfig = Record<string, HookEntry[]>;
+
+export interface SoundPackMeta {
+  id: SoundPackId;
+  game: string;
+  sounds: Record<string, string>;
+}
 
 export function detectOS(): OSType {
   const p = platform();
@@ -31,110 +37,137 @@ export function getOSLabel(os: OSType): string {
   }
 }
 
-function buildHookCommand(soundsDir: string, files: string[], os: OSType): string {
-  const paths = files.map((f) => `$S/${f}`).join(' ');
-  const randomPick = `\${sounds[$((RANDOM % \${#sounds[@]}))]}`;
-  const selectSound = `S=${soundsDir}; sounds=(${paths})`;
+function buildHookCommand(soundsDir: string, file: string, os: OSType): string {
+  const path = `$S/${file}`;
+  const setDir = `S=${soundsDir}`;
 
   switch (os) {
     case 'macos':
-      return `${selectSound}; nohup afplay ${randomPick} &>/dev/null & disown`;
+      return `${setDir}; afplay ${path} >/dev/null 2>&1 &`;
     case 'linux':
-      return `${selectSound}; nohup paplay ${randomPick} &>/dev/null & disown`;
+      return `${setDir}; paplay ${path} >/dev/null 2>&1 &`;
     case 'windows':
-      return `${selectSound}; powershell.exe -c "(New-Object Media.SoundPlayer ${randomPick}).PlaySync()" &>/dev/null & disown`;
+      return `${setDir}; powershell.exe -c "(New-Object Media.SoundPlayer ${path}).PlaySync()" >/dev/null 2>&1 &`;
   }
 }
 
-function makeHook(soundsDir: string, files: string[], os: OSType): HookEntry {
+function makeHook(soundsDir: string, file: string, os: OSType): HookEntry {
   return {
     hooks: [
       {
         type: 'command',
-        command: buildHookCommand(soundsDir, files, os),
+        command: buildHookCommand(soundsDir, file, os),
         async: true,
       },
     ],
   };
 }
 
-const osrsSoundMap: Record<string, string[]> = {
-  Stop: [
-    'level_up.ogg',
-    'level_up_fireworks.ogg',
-    'coins.wav',
-    'coins_jingle.wav',
-    'unique_drop.ogg',
-    'found_gem.wav',
-    'mining.wav',
-    'magic_tree.ogg',
-    'fishing_cast.wav',
-    'whip_attack.wav',
-    'crossbow_attack.wav',
-    'fire_strike.ogg',
-    'eat_chomp.wav',
-    'iron_door.wav',
-  ],
-  PostToolUseFailure: [
-    'wrong.wav',
-    'spell_failure.wav',
-    'ghost_death.wav',
-    'zombie_death.ogg',
-    'locked.wav',
-    'tele_block.ogg',
-  ],
-  Notification: [
-    'protect_melee.ogg',
-    'protect_missiles.ogg',
-    'protect_magic.ogg',
-    'prayer_recharge.wav',
-    'piety.ogg',
-    'smite.ogg',
-  ],
-  SubagentStop: [
-    'teleport.ogg',
-    'teleport_ancient.ogg',
-    'fairy_rings.ogg',
-    'home_teleport.ogg',
-    'ice_barrage.ogg',
-    'ice_blitz.ogg',
-  ],
-  SessionStart: [
-    'level_up.ogg',
-    'teleport.ogg',
-    'home_teleport.ogg',
-    'iron_door.wav',
-    'coins_jingle.wav',
-  ],
-  SessionEnd: [
-    'ghost_death.wav',
-    'zombie_death.ogg',
-    'vengeance.ogg',
-    'godsword_special.wav',
-    'dragon_claws_special.ogg',
-    'dragonfire.ogg',
-  ],
-};
+export const soundPacks: SoundPackMeta[] = [
+  {
+    id: 'cstrike',
+    game: 'Counter-Strike 1.6',
+    sounds: {
+      SessionStart: 'radio-letsgo.wav',
+      SessionEnd: 'radio-ctwin.wav',
+      PostToolUseFailure: 'bot-thats_not_good.wav',
+      PermissionRequest: 'weapons-c4_beep1.wav',
+      Notification: 'ui-hint.wav',
+      Stop: 'bot-enemy_down.wav',
+      TaskCompleted: 'bot-and_thats_how_its_done.wav',
+      PreCompact: 'weapons-c4_plant.wav',
+    },
+  },
+  {
+    id: 'osrs',
+    game: 'Old School RuneScape',
+    sounds: {
+      SessionStart: 'teleport.ogg',
+      SessionEnd: 'ghost-death.wav',
+      PostToolUseFailure: 'spell-failure.wav',
+      PermissionRequest: 'locked.wav',
+      Notification: 'found-gem.wav',
+      Stop: 'coins.wav',
+      TaskCompleted: 'coins-jingle.wav',
+      PreCompact: 'liquify.wav',
+    },
+  },
+  {
+    id: 'csgo',
+    game: 'Counter-Strike: GO',
+    sounds: {
+      SessionStart: 'ui-mainmenu_press_play.wav',
+      SessionEnd: 'ui-mainmenu_press_quit_02.wav',
+      PostToolUseFailure: 'ui-lobby_error_01.wav',
+      PermissionRequest: 'ui-competitive_accept_beep.wav',
+      Notification: 'ui-lobby_notification_chat.wav',
+      Stop: 'ui-inventory_item_close_01.wav',
+      TaskCompleted: 'ui-xp_levelup.wav',
+      PreCompact: 'ambient-hydraulic_1.wav',
+    },
+  },
+  {
+    id: 'hl2',
+    game: 'Half-Life 2',
+    sounds: {
+      SessionStart: 'items-suitchargeok1.wav',
+      SessionEnd: 'fvox-hev_shutdown.wav',
+      PostToolUseFailure: 'fvox-hev_general_fail.wav',
+      PermissionRequest: 'fvox-bell.wav',
+      Notification: 'fvox-blip.wav',
+      Stop: 'fvox-beep.wav',
+      TaskCompleted: 'items-battery_pickup.wav',
+      PreCompact: 'ambient-spinup.wav',
+    },
+  },
+  {
+    id: 'hl1',
+    game: 'Half-Life',
+    sounds: {
+      SessionStart: 'fvox-hev_logon.wav',
+      SessionEnd: 'fvox-hev_shutdown.wav',
+      PostToolUseFailure: 'fvox-hev_general_fail.wav',
+      PermissionRequest: 'fvox-bell.wav',
+      Notification: 'fvox-blip.wav',
+      Stop: 'fvox-boop.wav',
+      TaskCompleted: 'items-smallmedkit1.wav',
+      PreCompact: 'ambience-port_suckout1.wav',
+    },
+  },
+  {
+    id: 'portal2',
+    game: 'Portal 2',
+    sounds: {
+      SessionStart: 'weapons-portalgun_powerup1.wav',
+      SessionEnd: 'vfx-fizzler_shutdown_01.wav',
+      PostToolUseFailure: 'ui-p2_editor_error.wav',
+      PermissionRequest: 'ui-beep22.wav',
+      Notification: 'ui-coop_hud_activate_01.wav',
+      Stop: 'buttons-synth_positive_01.wav',
+      TaskCompleted: 'buttons-test_chamber_pos_01.wav',
+      PreCompact: 'world-tube_suction_object_01.wav',
+    },
+  },
+];
 
-export function getSoundHooks(pack: SoundPack, soundsDir: string, os: OSType): HooksConfig | null {
-  if (pack === 'none') return null;
+export function getSoundPack(id: SoundPackId): SoundPackMeta {
+  const pack = soundPacks.find((p) => p.id === id);
+  if (!pack) throw new Error(`Unknown sound pack: ${id}`);
+  return pack;
+}
 
+export function getSoundHooks(packId: SoundPackId, soundsDir: string, os: OSType): HooksConfig {
+  const pack = getSoundPack(packId);
   const hooks: HooksConfig = {};
-  for (const [event, files] of Object.entries(osrsSoundMap)) {
-    hooks[event] = [makeHook(soundsDir, files, os)];
+
+  for (const [event, file] of Object.entries(pack.sounds)) {
+    hooks[event] = [makeHook(soundsDir, file, os)];
   }
+
   return hooks;
 }
 
-export function getSoundPackDescription(pack: SoundPack): string {
-  switch (pack) {
-    case 'osrs':
-      return 'Old School RuneScape sounds (level ups, combat, teleports, prayers)';
-    case 'none':
-      return 'No sounds';
-  }
-}
-
-export function getSoundFiles(): string[] {
-  return [...new Set(Object.values(osrsSoundMap).flat())];
+export function getSoundFiles(packId: SoundPackId): string[] {
+  const pack = getSoundPack(packId);
+  return Object.values(pack.sounds);
 }
