@@ -1,55 +1,40 @@
-# Lo-Claude
+<p align="center">
+  <img src="assets/header.jpg" alt="Lo Claude" width="100%" />
+</p>
 
-A modular Claude Code extension platform. Give Claude superpowers through pluggable modules and personalize your coding experience with custom sounds, spinner verbs, and permissions.
+<p align="center">
+  <img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail" />
+  <img src="https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive" />
+  <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3" />
+  <img src="https://img.shields.io/badge/Mediavida-FF6600?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRleHQgeT0iMTgiIGZvbnQtc2l6ZT0iMTgiPk08L3RleHQ+PC9zdmc+&logoColor=white" alt="Mediavida" />
+  <img src="https://img.shields.io/badge/Forocoches-333333?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRleHQgeT0iMTgiIGZvbnQtc2l6ZT0iMTgiPkZDPC90ZXh0Pjwvc3ZnPg==&logoColor=white" alt="Forocoches" />
+</p>
 
 ## Quick Start
 
 ```bash
-# Clone the repo
 git clone https://github.com/jvidalv/lo-claude.git
 cd lo-claude
-
-# Install dependencies
 npm install
-
-# Run the setup wizard
 npm run setup
 ```
 
-The setup wizard configures:
-- **Spinner verbs** — Custom loading messages while Claude thinks
-- **Sound effects** — OSRS-themed audio feedback for events
-- **Permissions** — Pre-approve common CLI commands
+The setup wizard configures custom **spinner verbs**, **sound effects** (OSRS, TF2, Stardew Valley...), and **permissions**.
 
 ## Modules
 
-Lo-Claude is built around independent, pluggable modules. Enable only what you need.
+Enable only what you need. Each module is independent and pluggable.
 
 | Module | Description | Tools |
 |--------|-------------|-------|
-| **Gmail** | Read and search emails | `gmail_list`, `gmail_read`, `gmail_search` |
-| **Google Drive** | Manage files, organize receipts | `drive_list`, `drive_download`, `drive_rename`, `drive_move` |
-| **AWS S3** | Manage S3 objects | `s3_list`, `s3_download`, `s3_upload`, `s3_rename`, `s3_move` |
-| **Mediavida** | Read Spanish forum threads | `mediavida_thread`, `mediavida_page` |
-| **Setup** | Configure Claude Code settings | Interactive CLI wizard |
+| **Gmail** | Read and search emails | `gmail_list`, `gmail_read`, `gmail_search`, `gmail_invoices`, `gmail_download_invoices` |
+| **Google Drive** | Manage files, organize receipts | `drive_list`, `drive_download`, `drive_rename`, `drive_move`, `drive_receipts`, `drive_organize_receipts` |
+| **AWS S3** | Manage S3 objects, organize receipts | `s3_list`, `s3_download`, `s3_upload`, `s3_rename`, `s3_move`, `s3_receipts`, `s3_organize_receipts` |
+| **Mediavida** | Read and summarize forum threads | `mediavida_thread`, `mediavida_page` |
+| **Forocoches** | Read, post, and edit forum threads | `forocoches_thread`, `forocoches_page`, `forocoches_reply`, `forocoches_edit` |
+| **Setup** | Configure Claude Code settings | Interactive CLI wizard (`npm run setup`) |
 
 ## Adding to Claude Code
-
-Add the MCP server to your Claude Code configuration:
-
-```json
-{
-  "mcpServers": {
-    "lo-claude": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/lo-claude/src/core/mcp-server.ts"],
-      "cwd": "/path/to/lo-claude"
-    }
-  }
-}
-```
-
-Or for production (after `npm run build`):
 
 ```json
 {
@@ -62,22 +47,16 @@ Or for production (after `npm run build`):
 }
 ```
 
-## Module Setup
-
-Each module has a setup command you can run from Claude Code:
-
-- `/gmail-setup` — Configure Gmail OAuth credentials
-- `/drive-setup` — Configure Google Drive access
-- `/s3-setup` — Configure AWS S3 access
-- `/mediavida-setup` — Configure Mediavida forum cookies
+Each module has a setup command: `/gmail-setup`, `/drive-setup`, `/s3-setup`, `/mediavida-setup`, `/forocoches-setup`.
 
 ## Creating Your Own Module
 
-1. Create a directory at `src/modules/<name>/`
-2. Implement the module interface:
+1. Create `src/modules/<name>/`
+2. Add `client.ts` (logic) and `tools.ts` (MCP tool definitions)
+3. Register in `src/core/config.ts`
+4. Add `/commands/<name>-setup.md` and optionally `/skills/<name>/`
 
 ```typescript
-// src/modules/<name>/index.ts
 import type { Module } from '#core/types.js';
 
 export const myModule: Module = {
@@ -87,42 +66,30 @@ export const myModule: Module = {
 };
 ```
 
-3. Add tool implementations in `client.ts` and `tools.ts`
-4. Register the module in `src/core/config.ts`
-5. Add a setup command in `.claude/commands/<name>-setup.md`
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `S3_BUCKET` | AWS S3 bucket name | `my-bucket` |
-| `AWS_REGION` | AWS region | `eu-west-1` |
-
 ## Project Structure
 
 ```
 lo-claude/
 ├── src/
-│   ├── core/           # MCP server, config, types
-│   ├── modules/        # Pluggable integrations
-│   │   ├── google/     # Gmail + Drive (shared auth)
-│   │   ├── aws/s3/     # AWS S3
-│   │   └── mediavida/  # Forum scraper
-│   └── setup/          # Interactive setup wizard
-├── sounds/
-│   └── osrs/           # OSRS sound pack (41 files)
+│   ├── core/              # MCP server, config, types
+│   ├── modules/
+│   │   ├── google/        # Gmail + Drive (shared OAuth)
+│   │   ├── aws/           # S3
+│   │   ├── mediavida/     # Forum reader
+│   │   └── forocoches/    # Forum reader + poster
+│   └── setup/             # Interactive setup wizard
+├── sounds/                # Sound packs (OSRS, TF2, Stardew Valley...)
 ├── .claude/
-│   ├── commands/       # Slash commands
-│   └── skills/         # Contextual knowledge
+│   ├── commands/          # Slash commands
+│   └── skills/            # Contextual knowledge for Claude
 └── package.json
 ```
 
 ## Security
 
-- Credentials and tokens are gitignored and stored locally only
+- Credentials stored locally, never committed
 - Each module requests only the OAuth scopes it needs
 - Never commit `credentials.json`, `token.json`, or `cookies.txt`
-- The setup wizard backs up your settings before making changes
 
 ## License
 

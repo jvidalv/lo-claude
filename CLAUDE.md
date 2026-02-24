@@ -30,6 +30,12 @@ You have access to these MCP tools. Use them directly when the user asks about e
 - `mediavida_thread` - Get and summarize a full thread. Args: `url` (string, required), `maxPages` (number)
 - `mediavida_page` - Get a single page of a thread. Args: `url` (string, required), `page` (number)
 
+### Forocoches Tools
+- `forocoches_thread` - Get and summarize a full thread. Args: `url` (string, required), `maxPages` (number)
+- `forocoches_page` - Get a single page of a thread. Args: `url` (string, required), `page` (number)
+- `forocoches_reply` - Post a reply to a thread. Args: `url` (string, required), `message` (string, required)
+- `forocoches_edit` - Edit an existing post. Args: `postId` (string, required), `message` (string, required), `reason` (string, optional)
+
 **Examples:**
 - "Show my emails" → use `gmail_list`
 - "Find emails from John" → use `gmail_search` with query "from:john"
@@ -37,6 +43,7 @@ You have access to these MCP tools. Use them directly when the user asks about e
 - "List files in Receipts/Inbox" → use `drive_list` with folderPath
 - "List files in S3" → use `s3_list` with prefix
 - "Summarize this mediavida thread: [url]" → use `mediavida_thread`
+- "Summarize this forocoches thread: [url]" → use `forocoches_thread`
 
 ## Commands vs Skills
 
@@ -141,6 +148,7 @@ interface Module {
 - `drive` - Manage files in Google Drive, organize receipt photos
 - `s3` - Manage files in AWS S3, organize receipt photos
 - `mediavida` - Read and summarize Mediavida forum threads
+- `forocoches` - Read and summarize Forocoches forum threads
 - `setup` - Interactive CLI wizard to configure Claude Code settings (not an MCP module)
 
 ## Setup Module

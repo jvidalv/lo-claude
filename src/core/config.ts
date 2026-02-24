@@ -109,3 +109,8 @@ registerModule('s3', async () => {
   const { s3Module } = await import('#modules/aws/s3/index.js');
   return s3Module;
 });
+
+registerModule('forocoches', async () => {
+  const { forocochesModule } = await import('#modules/forocoches/index.js');
+  return forocochesModule;
+});
