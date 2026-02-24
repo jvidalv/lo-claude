@@ -6,8 +6,8 @@
   <img src="https://img.shields.io/badge/Gmail-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail" />
   <img src="https://img.shields.io/badge/Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white" alt="Google Drive" />
   <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3" />
-  <img src="https://img.shields.io/badge/Mediavida-FF6600?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRleHQgeT0iMTgiIGZvbnQtc2l6ZT0iMTgiPk08L3RleHQ+PC9zdmc+&logoColor=white" alt="Mediavida" />
-  <img src="https://img.shields.io/badge/Forocoches-333333?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHRleHQgeT0iMTgiIGZvbnQtc2l6ZT0iMTgiPkZDPC90ZXh0Pjwvc3ZnPg==&logoColor=white" alt="Forocoches" />
+  <a href="#modules"><img src="https://www.mediavida.com/apple-touch-icon.png" alt="Mediavida" width="28" height="28" /></a>
+  <a href="#modules"><img src="https://forocoches.com/foro/images/smilies/goofy.gif" alt="Forocoches" width="28" height="28" /></a>
 </p>
 
 ## Quick Start
