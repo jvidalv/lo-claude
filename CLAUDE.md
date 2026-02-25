@@ -35,6 +35,7 @@ You have access to these MCP tools. Use them directly when the user asks about e
 - `forocoches_page` - Get a single page of a thread. Args: `url` (string, required), `page` (number)
 - `forocoches_reply` - Post a reply to a thread. Args: `url` (string, required), `message` (string, required)
 - `forocoches_edit` - Edit an existing post. Args: `postId` (string, required), `message` (string, required), `reason` (string, optional)
+- `forocoches_quotes` - Check for new quotes/mentions. Args: `url` (string, required), `showAll` (boolean, optional)
 
 **Examples:**
 - "Show my emails" → use `gmail_list`
@@ -44,6 +45,7 @@ You have access to these MCP tools. Use them directly when the user asks about e
 - "List files in S3" → use `s3_list` with prefix
 - "Summarize this mediavida thread: [url]" → use `mediavida_thread`
 - "Summarize this forocoches thread: [url]" → use `forocoches_thread`
+- "Check my forocoches quotes" → use `forocoches_quotes`
 
 ## Commands vs Skills
 

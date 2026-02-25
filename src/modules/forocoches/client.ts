@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer, { type CookieParam } from 'puppeteer';
@@ -96,6 +96,32 @@ function loadUserAgent(): string {
     return readFileSync(USER_AGENT_PATH, 'utf-8').trim();
   }
   return DEFAULT_USER_AGENT;
+}
+
+/** Quote/mention data structure */
+export interface ForumQuote {
+  postId: string;
+  author: string;
+  authorId: string;
+  date: string;
+  time: string;
+  threadTitle: string;
+  threadUrl: string;
+  preview: string;
+}
+
+/** Last seen quote state file */
+const LAST_SEEN_PATH = resolve(MODULE_DIR, '.last-seen-quote');
+
+function getLastSeenQuoteId(): string | null {
+  if (existsSync(LAST_SEEN_PATH)) {
+    return readFileSync(LAST_SEEN_PATH, 'utf-8').trim() || null;
+  }
+  return null;
+}
+
+function setLastSeenQuoteId(postId: string): void {
+  writeFileSync(LAST_SEEN_PATH, postId, 'utf-8');
 }
 
 /** Post data structure */
@@ -530,6 +556,95 @@ export async function editPost(postId: string, newMessage: string, reason?: stri
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * Parse the quotes/mentions page from a Forocoches profile
+ */
+function parseQuotesPage(html: string): ForumQuote[] {
+  const quotes: ForumQuote[] = [];
+
+  // Find the quotes container
+  const containerMatch = html.match(/id="collapseobj_quotes"[^>]*>([\s\S]*?)(?:<\/div>\s*<\/div>\s*<\/td>|$)/i);
+  if (!containerMatch?.[1]) return quotes;
+
+  const container = containerMatch[1];
+
+  // Split by date headers (td.thead) to track the current date
+  // Pattern: date headers alternate with quote entries
+  let currentDate = '';
+
+  // Match both date headers and quote entries in order
+  const cellRegex = /<td[^>]*class="(?:thead|alt1)"[^>]*>([\s\S]*?)<\/td>/gi;
+  let cellMatch: RegExpExecArray | null;
+
+  while ((cellMatch = cellRegex.exec(container)) !== null) {
+    const cellClass = cellMatch[0];
+    const cellContent = cellMatch[1] ?? '';
+
+    if (cellClass.includes('class="thead"')) {
+      // Date header cell — extract the date text
+      currentDate = stripHtml(cellContent).trim();
+      continue;
+    }
+
+    // Quote entry in alt1 cell
+    // Pattern: <strong>HH:MM</strong> - <a href="member.php?u=ID">AUTHOR</a> te citó en el tema: <strong><a href="showthread.php?p=POSTID#postPOSTID">TITLE</a></strong>
+    const timeMatch = cellContent.match(/<strong>(\d{1,2}:\d{2})<\/strong>/);
+    const authorMatch = cellContent.match(/member\.php\?u=(\d+)"[^>]*>([^<]+)<\/a>/);
+    const threadMatch = cellContent.match(/showthread\.php\?p=(\d+)(?:#post\d+)?"[^>]*>([^<]+)<\/a>/);
+    const previewMatch = cellContent.match(/<div[^>]*class="alt2"[^>]*>([\s\S]*?)<\/div>/i);
+
+    if (!threadMatch) continue;
+
+    const time = timeMatch?.[1] ?? '';
+    const authorId = authorMatch?.[1] ?? '0';
+    const author = sanitizeContent(authorMatch?.[2]?.trim() ?? 'Unknown');
+    const postId = threadMatch[1] ?? '';
+    const threadTitle = sanitizeContent(stripHtml(threadMatch[2] ?? ''));
+    const preview = previewMatch?.[1] ? sanitizeContent(stripHtml(previewMatch[1])) : '';
+    const threadUrl = `https://forocoches.com/foro/showthread.php?p=${postId}#post${postId}`;
+
+    quotes.push({
+      postId,
+      author,
+      authorId,
+      date: currentDate,
+      time,
+      threadTitle,
+      threadUrl,
+      preview,
+    });
+  }
+
+  return quotes;
+}
+
+/**
+ * Get quotes/mentions from a Forocoches profile page.
+ * Returns all quotes, with new ones (since last seen) marked by position.
+ */
+export async function getQuotes(profileUrl: string): Promise<{ quotes: ForumQuote[]; newCount: number; lastSeenId: string | null }> {
+  const html = await fetchWithPuppeteer(profileUrl);
+  const quotes = parseQuotesPage(html);
+  const lastSeenId = getLastSeenQuoteId();
+
+  // Find how many are new (quotes are newest-first on the page)
+  let newCount = quotes.length; // default: all are new if no last seen
+  if (lastSeenId) {
+    const lastSeenIdx = quotes.findIndex(q => q.postId === lastSeenId);
+    if (lastSeenIdx !== -1) {
+      newCount = lastSeenIdx;
+    }
+    // If lastSeenId not found, all quotes are considered new
+  }
+
+  // Update last seen to the newest quote
+  if (quotes.length > 0 && quotes[0]) {
+    setLastSeenQuoteId(quotes[0].postId);
+  }
+
+  return { quotes, newCount, lastSeenId };
 }
 
 /**

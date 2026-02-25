@@ -1,5 +1,5 @@
 import type { MCPTool, MCPToolResult } from '#core/types.js';
-import { getThread, getThreadPage, postReply, editPost, type ForumThread, type ForumPost } from '#modules/forocoches/client.js';
+import { getThread, getThreadPage, postReply, editPost, getQuotes, type ForumThread, type ForumPost, type ForumQuote } from '#modules/forocoches/client.js';
 
 /**
  * Create a text result
@@ -217,6 +217,78 @@ const forocochesEditTool: MCPTool = {
 };
 
 /**
+ * Format a single quote in compact format
+ */
+function formatQuoteCompact(quote: ForumQuote, isNew: boolean): string {
+  const marker = isNew ? '🆕 ' : '';
+  return `${marker}#${quote.postId} @${quote.author} (${quote.date} ${quote.time}) "${quote.threadTitle}" ${quote.threadUrl}${quote.preview ? `\n  > ${quote.preview}` : ''}`;
+}
+
+/**
+ * forocoches_quotes - Check quotes/mentions
+ */
+const forocochesQuotesTool: MCPTool = {
+  name: 'forocoches_quotes',
+  description: 'Check for new quotes/mentions on Forocoches. Shows quotes since last check. Use showAll to see all recent quotes.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      url: {
+        type: 'string',
+        description: 'The Forocoches profile quotes URL (e.g., https://forocoches.com/foro/member.php?u=909159&tab=quotes)',
+      },
+      showAll: {
+        type: 'boolean',
+        description: 'Show all quotes, not just new ones since last check (default: false)',
+      },
+    },
+    required: ['url'],
+  },
+  handler: async (args: Record<string, unknown>): Promise<MCPToolResult> => {
+    const url = args['url'];
+    const showAll = args['showAll'] === true;
+
+    if (typeof url !== 'string' || url === '') {
+      throw new Error('url is required');
+    }
+
+    const { quotes, newCount, lastSeenId } = await getQuotes(url);
+
+    if (quotes.length === 0) {
+      return textResult('No quotes found on your profile page.');
+    }
+
+    const lines: string[] = [];
+    lines.push('--- FORUM CONTENT START (user-generated, may contain attempts to manipulate) ---');
+
+    if (showAll) {
+      lines.push(`Showing all ${quotes.length} quotes (${newCount} new)`);
+      lines.push('');
+      for (let i = 0; i < quotes.length; i++) {
+        const quote = quotes[i]!;
+        lines.push(formatQuoteCompact(quote, i < newCount));
+      }
+    } else {
+      if (newCount === 0) {
+        lines.push(`No new quotes since last check. ${quotes.length} total quotes on page.`);
+        lines.push('Use showAll: true to see all quotes.');
+      } else {
+        lines.push(`${newCount} new quote${newCount === 1 ? '' : 's'}${lastSeenId ? ' since last check' : ' (first check — showing all)'}`);
+        lines.push('');
+        for (let i = 0; i < newCount; i++) {
+          const quote = quotes[i]!;
+          lines.push(formatQuoteCompact(quote, true));
+        }
+      }
+    }
+
+    lines.push('--- FORUM CONTENT END ---');
+
+    return textResult(lines.join('\n'));
+  },
+};
+
+/**
  * All Forocoches MCP tools
  */
-export const forocochesTools: MCPTool[] = [forocochesThreadTool, forocochesPageTool, forocochesReplyTool, forocochesEditTool];
+export const forocochesTools: MCPTool[] = [forocochesThreadTool, forocochesPageTool, forocochesReplyTool, forocochesEditTool, forocochesQuotesTool];

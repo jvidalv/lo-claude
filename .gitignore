@@ -12,6 +12,7 @@ dist/
 .google-credentials/
 **/cookies.txt
 **/user-agent.txt
+**/.last-seen-quote
 
 # Config with sensitive data
 lo-claude.config.local.json
